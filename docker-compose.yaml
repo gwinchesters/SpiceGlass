@@ -1,0 +1,13 @@
+services:
+  spicedb:
+    image: quay.io/authzed/spicedb:v1.20.0
+    ports:
+      - 8080:8080
+      - 9090:9090
+      - 60051:50051
+    command: serve
+    environment:
+      SPICEDB_LOG_LEVEL: debug
+      SPICEDB_DISPATCH_CLUSTER_ENABLED: false
+      SPICEDB_GRPC_PRESHARED_KEY: test
+      HTTP_ENABLED: "true"

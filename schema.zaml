@@ -1,0 +1,7 @@
+definition user {
+  relation platform: platform
+}
+
+definition platform {
+  
+}
