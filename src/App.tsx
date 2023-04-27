@@ -1,5 +1,6 @@
 import SpiceClient from '@/services/spice'
 import { useEffect, useState } from 'react'
+import { Schema } from '@/schema/parser'
 
 
 function App() {
@@ -8,7 +9,7 @@ function App() {
         endpoint: import.meta.env.VITE_ZED_ENDPOINT
     })
 
-    const [schema, setSchema] = useState<string>()
+    const [schema, setSchema] = useState<Schema>()
     const [schemaError, setSchemaError] = useState<string>()
 
     useEffect(() => {
@@ -26,7 +27,7 @@ function App() {
     }, [setSchema, setSchemaError])
     return (
         <div>
-            <b>Schema:</b> { schema ?? (schemaError ?? 'Loading...') }
+            <b>Schema:</b> { schema ? JSON.stringify(schema, null, 2) : (schemaError ?? 'Loading...') }
         </div>
     )
 }

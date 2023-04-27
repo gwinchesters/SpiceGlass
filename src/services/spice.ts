@@ -1,6 +1,7 @@
 import { v1 } from '@authzed/authzed-node'
 import logger from '@/utils/logger'
 import { readFileSync } from 'fs'
+import parseSchema, { type Schema } from '@/schema/parser'
 
 type SpiceClientConfig = {
   token: string
@@ -32,9 +33,10 @@ class SpiceClient {
     return this.client.promises
   }
 
-  async getSchema(): Promise<string> {
+  async getSchema(): Promise<Schema> {
     const result = await this.runner.readSchema({})
-    return result.schemaText
+    const schema = parseSchema(result.schemaText)
+    return schema
   }
 
   private createClient(): v1.ZedClientInterface {
