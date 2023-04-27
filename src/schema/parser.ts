@@ -23,10 +23,10 @@ export type RegExpGroups<T extends string> =
     })
   | null;
 
-const definitionNameRegex = '[a-zA-Z_]+'
-const relationNameRegex = '[a-zA-Z_]+'
-const relationTypeNameRegex = '[a-zA-Z_]+'
-const relationTypeRelationRegex = '[a-zA-Z_]+'
+const definitionNameRegex = '[a-zA-Z_0-9]+'
+const relationNameRegex = '[a-zA-Z_0-9]+'
+const relationTypeNameRegex = '[a-zA-Z_0-9]+'
+const relationTypeRelationRegex = '[a-zA-Z_0-9]+'
 const relationTypeRegex = `${relationTypeNameRegex}(#${relationTypeRelationRegex})?`
 
 const definitionRegex = new RegExp(`definition\\s*(?<name>${definitionNameRegex})\\s*{s*((?<inline>.*)})?`)
