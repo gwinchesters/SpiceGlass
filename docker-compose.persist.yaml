@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:14
+    ports:
+      - 5433:5432
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB
+      interval: 1s
+      timeout: 5s
+      retries: 30
+
+  spicedb:
+    image: quay.io/authzed/spicedb:v1.20.0
+    ports:
+      - 8080:8080
+      - 9090:9090
+      - 60051:50051
+    command: serve
+    depends_on:
+      - db
+    environment:
+      SPICEDB_LOG_LEVEL: debug
+      SPICEDB_DISPATCH_CLUSTER_ENABLED: false
+      SPICEDB_GRPC_PRESHARED_KEY: test
+      DATASTORE_ENGINE: postgres
+      HTTP_ENABLED: "true"
+      DATASTORE_CONN_URI: postgres://user:pass@db:5432/db
+
+  migrate:
+    restart: "on-failure"
+    image: quay.io/authzed/spicedb:v1.20.0
+    command: migrate head
+    depends_on:
+      - spicedb
+    environment:
+      SPICEDB_DATASTORE_ENGINE: postgres
+      SPICEDB_DATASTORE_CONN_URI: postgres://user:pass@db:5432/db
+
+volumes:
+  db:

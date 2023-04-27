@@ -13,6 +13,10 @@
   },
   "scripts": {
     "start": "vite",
+    "start:docker:mem": "docker compose up -d --wait",
+    "start:docker:persist": "COMPOSE_FILE=docker-compose.persist.yaml docker compose up -d --wait",
+    "zed:init": "./scripts/zed.sh schema write schema.zaml && zed schema read",
+    "bootstrap": "npm run start:docker:mem && npm run zed:init && npm run start",
     "build": "tsc && vite build && electron-builder"
   },
   "repository": {
@@ -26,7 +30,9 @@
   },
   "homepage": "https://github.com/gwinchesters/spice-glass#readme",
   "dependencies": {
-    "electron-updater": "^5.3.0"
+    "@authzed/authzed-node": "^0.11.0",
+    "electron-updater": "^5.3.0",
+    "tslog": "^4.8.2"
   },
   "devDependencies": {
     "@types/node": "^18.16.1",
