@@ -1,1 +1,8 @@
-export { Definition, Permission, Relation, Resource, Schema } from './schema'
+export {
+  Definition,
+  type Entity,
+  Permission,
+  Relation,
+  Resource,
+  Schema,
+} from './schema'

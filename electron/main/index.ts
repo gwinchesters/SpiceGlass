@@ -1,4 +1,5 @@
 import { app, BrowserWindow, shell, ipcMain } from 'electron'
+import contextMenu from 'electron-context-menu'
 import { release } from 'node:os'
 import { join } from 'node:path'
 import { update } from './update'
@@ -40,6 +41,10 @@ let win: BrowserWindow | null = null
 const preload = join(__dirname, '../preload/index.js')
 const url = process.env.VITE_DEV_SERVER_URL
 const indexHtml = join(process.env.DIST, 'index.html')
+
+contextMenu({
+  showInspectElement: true
+})
 
 async function createWindow() {
   win = new BrowserWindow({

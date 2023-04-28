@@ -45,7 +45,7 @@ const SchemaSearch = () => {
             <List.Item>
               <Button
                 type="text"
-                onClick={() => addTab(item)}
+                onClick={() => addTab({ defaultDefinition: item })}
                 style={{ width: '100%', color: '#d9d9d9', textAlign: 'left' }}
               >
                 {item}

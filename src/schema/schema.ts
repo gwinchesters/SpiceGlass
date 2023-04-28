@@ -1,3 +1,7 @@
+import { Relationship } from '@authzed/authzed-node/dist/src/v1'
+
+import SpiceClient from '@/services/spice'
+
 import type {
   DefinitionType,
   PermissionType,
@@ -6,6 +10,15 @@ import type {
   SchemaDefinition,
 } from './ast'
 import parseSchema from './parser'
+
+function notEmpty<TValue>(value: TValue | null | undefined): value is TValue {
+  return value !== null && value !== undefined
+}
+
+export type Entity = {
+  definition: Definition
+  id: string
+}
 
 export class Resource {
   readonly parent: Relation
@@ -44,6 +57,24 @@ export class Relation {
     this.parent = parent
     this.name = name
     this.resources = resources
+  }
+
+  async lookupRelationsFromEntity(
+    { definition, id }: Entity,
+    client: SpiceClient,
+  ): Promise<Relationship[]> {
+    const result = await client.runner.readRelationships({
+      relationshipFilter: {
+        resourceType: this.parent.name,
+        optionalResourceId: '',
+        optionalRelation: this.name,
+        optionalSubjectFilter: {
+          subjectType: definition.name,
+          optionalSubjectId: id,
+        },
+      },
+    })
+    return result.map(({ relationship }) => relationship).filter(notEmpty)
   }
 }
 
@@ -90,6 +121,13 @@ export class Definition {
     this.name = name
     this.relations = relations
     this.permissions = permissions
+  }
+
+  createEntity(id: string): Entity {
+    return {
+      definition: this,
+      id,
+    }
   }
 }
 

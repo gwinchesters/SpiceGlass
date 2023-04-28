@@ -4,13 +4,16 @@ export interface Tab {
   id: string
   label: string | undefined
   defaultDefinition?: string
+  entityId?: string
 }
+
+import { createSelectors } from './selectors'
 
 export interface ExplorerState {
   tabs: Tab[]
   activeTab: string | undefined
   setActiveTab: (id: string) => void
-  addTab: (defaultDef?: string) => void
+  addTab: (config?: Pick<Tab, 'defaultDefinition' | 'entityId'>) => void
   removeTab: (id: string) => void
   updateLabel: (id: string, label: string) => void
 }
@@ -19,20 +22,20 @@ const genId = () => {
   return String(Date.now())
 }
 
-export const useExplorerStore = create<ExplorerState>()((set) => ({
+export const useExplorerStoreBase = create<ExplorerState>()((set) => ({
   tabs: [],
   activeTab: undefined,
   setActiveTab: (id) =>
     set(() => ({
       activeTab: id,
     })),
-  addTab: (defaultDefinition) =>
+  addTab: ({ defaultDefinition, entityId } = {}) =>
     set((state) => {
       const id = genId()
       return {
         tabs: [
           ...state.tabs,
-          { id, label: defaultDefinition, defaultDefinition },
+          { id, label: defaultDefinition, defaultDefinition, entityId },
         ],
         activeTab: id,
       }
@@ -51,3 +54,5 @@ export const useExplorerStore = create<ExplorerState>()((set) => ({
       }),
     })),
 }))
+
+export const useExplorerStore = createSelectors(useExplorerStoreBase)

@@ -41,7 +41,11 @@ const DefinitionContent = () => {
         label: t.label,
         key: t.id,
         children: (
-          <DetailTab id={t.id} defaultDefinition={t.defaultDefinition} />
+          <DetailTab
+            id={t.id}
+            entityId={t.entityId}
+            defaultDefinition={t.defaultDefinition}
+          />
         ),
       }))}
     />
