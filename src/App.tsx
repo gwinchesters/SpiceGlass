@@ -1,6 +1,6 @@
 import SpiceClient from '@/services/spice'
 import { useEffect, useState } from 'react'
-import { Schema } from '@/schema/parser'
+import { Schema } from '@/schema'
 
 
 function App() {

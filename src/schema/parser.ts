@@ -1,56 +1,4 @@
-export interface Resource {
-  name: string
-  optionalRelation?: string
-}
-
-export interface Relation {
-  name: string
-  resources: Resource[]
-}
-
-export interface ExpressionPart {
-  type: string
-}
-
-export interface RelationExpressionPart {
-  type: 'relation'
-  name: string
-  nestedExpressionPart?: ExpressionPart
-}
-
-export interface PermissionExpressionPart {
-  type: 'permission'
-  name: string
-}
-
-export interface OperationExpressionPart {
-  type: 'operation'
-  operator: '&' | '+' | '-'
-  operands: (PermissionExpressionPart | RelationExpressionPart)[]
-
-}
-
-export interface Permission {
-  name: string
-  expression: string
-  expressionParts?: ExpressionPart[]
-}
-
-export interface Definition {
-  name: string
-  relations: Relation[]
-  permissions: Permission[]
-}
-
-export interface Schema {
-  definitions: Definition[]
-}
-
-export type RegExpGroups<T extends string> =
-  | (RegExpMatchArray & {
-      groups?: { [name in T]: string } | { [key: string]: string };
-    })
-  | null;
+import type { RelationType, RegExpGroups, ResourceType, PermissionType, SchemaDefinition, DefinitionType } from './ast'
 
 const identifierRegex = '[a-zA-Z_0-9]+'
 const permissionOperatorsRegex = '[+&-]'
@@ -63,8 +11,8 @@ const typeRegex = new RegExp(`(((?<type>${identifierRegex})(#(?<relation>${ident
 const permissionRegex = new RegExp(`permission\\s+(?<name>${identifierRegex})\\s*=\\s*(?<expression>(((\\s*${permissionOperatorsRegex}\\s*)?${identifierRegex}(${permissionNestedOpRegex})?))+)`, 'g')
 const permissionExpressionRegex = new RegExp(`(?<type>([a-zA-Z_0-9]+(?<nested>->[a-zA-Z_0-9]+)?)(\\s*(?<operator>[+&-])\\s*)?)`, 'g')
 
-function parseRelations(relation: string): Relation[] {
-  const relations: Relation[] = []
+function parseRelations(relation: string): RelationType[] {
+  const relations: RelationType[] = []
   const relationMatches: RegExpGroups<'name' | 'type'>[] = [...relation.matchAll(relationRegex)]
   for (const relation of relationMatches) {
     if (!relation?.groups) {
@@ -72,7 +20,7 @@ function parseRelations(relation: string): Relation[] {
     }
   
     const { groups: { name, type } } = relation
-    const resources: Resource[] = type.trim().split('|').map((it) => {
+    const resources: ResourceType[] = type.trim().split('|').map((it) => {
       const matches: RegExpGroups<'relation' | 'type'>[] = [...it.trim().matchAll(typeRegex)]
       if (!matches.length) {
         throw Error("blah")
@@ -98,8 +46,8 @@ function parseRelations(relation: string): Relation[] {
   return relations
 }
 
-function parsePermissions(permission: string): Permission[] {
-  const permissions: Permission[] = []
+function parsePermissions(permission: string): PermissionType[] {
+  const permissions: PermissionType[] = []
   const permissionMatches: RegExpGroups<'name' | 'expression'>[] = [...permission.matchAll(permissionRegex)]
   for (const permission of permissionMatches) {
     if (!permission?.groups) {
@@ -130,8 +78,8 @@ function parsePermissions(permission: string): Permission[] {
 }
 
 
-function parseSchema(schemaString: string): Schema {
-  const schema: Schema = { definitions: [] }
+function parseSchema(schemaString: string): SchemaDefinition {
+  const schema: SchemaDefinition = { definitions: [] }
   const lines = schemaString.split(/\s*\n\s*/).filter((line) => line.trim() !== '')
 
   let i = 0;
@@ -148,7 +96,7 @@ function parseSchema(schemaString: string): Schema {
     }
 
     const { groups: { inline: body, name }} = typeMatch
-    const definition: Definition = { name, relations: [], permissions: [] }
+    const definition: DefinitionType = { name, relations: [], permissions: [] }
     
     if (body) {
       parseRelations(body).forEach((relation) => {
