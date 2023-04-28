@@ -1,5 +1,5 @@
 import { Card, Input, Select } from 'antd'
-import { ChangeEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Definition } from '@/schema'
 import { useExplorerStore, useZedStore } from '@/zustand'
@@ -35,10 +35,6 @@ const DetailTab = ({ id, defaultDefinition }: DefTabProps) => {
     setDefinition(schema?.definitions.find((d) => d.name === name))
   }
 
-  const onSearchId = ({ target }: ChangeEvent<HTMLInputElement>) => {
-    setSearchId(target.value)
-  }
-
   const defs = schema?.definitions.map((d) => {
     return {
       label: d.name,
@@ -60,7 +56,7 @@ const DetailTab = ({ id, defaultDefinition }: DefTabProps) => {
         style={{ width: '25%' }}
         placeholder="Entity Id"
         disabled={searchDisabled}
-        onChange={onSearchId}
+        onSearch={(id) => setSearchId(id)}
       />
       <Card title="Relations"></Card>
     </>
