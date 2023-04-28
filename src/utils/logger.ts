@@ -7,7 +7,7 @@ enum LogLevel {
   INFO = 3,
   WARN = 4,
   ERROR = 5,
-  FATAL = 6
+  FATAL = 6,
 }
 
 export default new Logger({ name: 'spice-glass', minLevel: LogLevel.DEBUG })

@@ -17,7 +17,11 @@
     "start:docker:persist": "COMPOSE_FILE=docker-compose.persist.yaml docker compose up -d --wait",
     "zed:init": "./scripts/zed.sh schema write schema.zaml && zed schema read",
     "bootstrap": "npm run start:docker:mem && npm run zed:init && npm run start",
-    "build": "tsc && vite build && electron-builder"
+    "build": "tsc && vite build",
+    "build:production": "npm run build && electron-builder",
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
+    "lint": "eslint --cache --fix --format=visualstudio ."
   },
   "repository": {
     "type": "git",
@@ -45,11 +49,18 @@
     "electron-builder": "^23.6.0",
     "eslint": "^8.39.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-simple-import-sort": "^10.0.0",
+    "jsdom": "^21.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "typescript": "^5.0.4",
     "vite": "^4.3.3",
     "vite-plugin-electron": "^0.11.2",
-    "vite-plugin-electron-renderer": "^0.14.1"
-  }
+    "vite-plugin-electron-renderer": "^0.14.1",
+    "vitest": "^0.30.1"
+  },
+  "precommit": [
+    "build",
+    "lint"
+  ]
 }
