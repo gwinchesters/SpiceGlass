@@ -1,8 +1,69 @@
+// A user within an organization
 definition user {
-  relation platform: platform
-  relation platform2: platform
+	relation platform: platform
+	relation self: user
+
+	permission write = platform->super_admin + self
 }
 
-definition platform {
+// A machine user within an organization
+definition machine_user {
+	relation platform: platform
+	relation owner: user
 
+	permission write = platform->super_admin + owner
+}
+
+// A generic grouping of users
+definition group {
+	relation member: user | machine_user
+}
+
+// The top-level relation in the organization
+definition platform {
+	relation admin: user | machine_user | group#member
+	permission super_admin = admin
+}
+
+// -- Top-Level Types
+
+// A facility type
+definition facility {
+	relation platform: platform
+	permission admin = platform->super_admin
+}
+
+// -- Nested Types (should have relation back to top-level)
+
+// An optimization project
+definition project {
+	relation parent_facility: facility
+	relation controller: user | machine_user
+
+	permission write = parent_facility->admin
+	permission control = write + controller
+}
+
+// A suggestion created for an optimization project
+definition suggestion {
+	relation parent_project: project
+
+	permission write = parent_project->write
+	permission control = parent_project->control
+}
+
+// A facility component
+definition component {
+	relation parent_facility: facility
+	relation owner: user | machine_user
+
+	permission write = parent_facility->admin + owner
+}
+
+// A control event
+definition control_event {
+	relation parent_component: component
+	relation suggestion: suggestion
+
+	permission write = parent_component->write + suggestion->control
 }

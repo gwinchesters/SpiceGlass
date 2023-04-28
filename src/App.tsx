@@ -1,35 +1,54 @@
+import { Layout } from 'antd'
 import { useEffect, useState } from 'react'
 
-import { Schema } from '@/schema'
+import DefinitionContent from '@/explorer/DefinitionContent'
+import SchemaSearch from '@/explorer/SchemaSearch'
+import FixedSidebar from '@/layout/FixedSidebar'
 import SpiceClient from '@/services/spice'
+import { useZedStore } from '@/zustand'
+
+const { Sider, Content } = Layout
 
 function App() {
-  const client = new SpiceClient({
-    token: import.meta.env.VITE_ZED_TOKEN,
-    endpoint: import.meta.env.VITE_ZED_ENDPOINT,
-  })
+  const [spiceConfig, setSchema, setSchemaError] = useZedStore((state) => [
+    state.spiceConfig,
+    state.setSchema,
+    state.setSchemaError,
+  ])
+  const [client, setClient] = useState<SpiceClient>()
 
-  const [schema, setSchema] = useState<Schema>()
-  const [schemaError, setSchemaError] = useState<string>()
+  useEffect(() => {
+    setClient(new SpiceClient(spiceConfig))
+  }, [spiceConfig, setClient])
 
   useEffect(() => {
     const fetchSchema = async () => {
-      try {
-        const result = await client.getSchema()
-        setSchema(result)
-        setSchemaError(undefined)
-      } catch (e) {
-        setSchemaError((e as { details: string }).details)
+      if (client) {
+        try {
+          const result = await client.getSchema()
+          setSchema(result)
+          setSchemaError(undefined)
+        } catch (e) {
+          setSchemaError((e as { details: string }).details)
+        }
       }
     }
 
     void fetchSchema()
-  }, [setSchema, setSchemaError])
+  }, [client, setSchema, setSchemaError])
+
   return (
-    <div>
-      <b>Schema:</b>{' '}
-      {schema ? JSON.stringify(schema, null, 2) : schemaError ?? 'Loading...'}
-    </div>
+    <Layout style={{ minHeight: '100vh' }}>
+      <FixedSidebar />
+      <Layout style={{ marginLeft: 50 }}>
+        <Sider style={{ backgroundColor: '#00474f' }}>
+          <SchemaSearch />
+        </Sider>
+        <Content>
+          <DefinitionContent />
+        </Content>
+      </Layout>
+    </Layout>
   )
 }
 
