@@ -1,8 +1,8 @@
 export type RegExpGroups<T extends string> =
   | (RegExpMatchArray & {
-      groups?: { [name in T]: string } | { [key: string]: string };
+      groups?: { [name in T]: string } | { [key: string]: string }
     })
-  | null;
+  | null
 
 export interface ResourceType {
   name: string
@@ -33,7 +33,6 @@ export interface OperationExpressionPart {
   type: 'operation'
   operator: '&' | '+' | '-'
   operands: (PermissionExpressionPart | RelationExpressionPart)[]
-
 }
 
 export interface PermissionType {

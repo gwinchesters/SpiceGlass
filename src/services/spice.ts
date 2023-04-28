@@ -1,24 +1,28 @@
 import { v1 } from '@authzed/authzed-node'
-import logger from '@/utils/logger'
 import { readFileSync } from 'fs'
+
 import { Schema } from '@/schema'
+import logger from '@/utils/logger'
 
 type SpiceClientConfig = {
   token: string
   endpoint: string
   insecure?: boolean
-} & ({ insecure?: true } | {
-  insecure: false
-  caStringBase64: string
-} | {
-  insecure: false
-  caFile: Buffer
-})
-
+} & (
+  | { insecure?: true }
+  | {
+      insecure: false
+      caStringBase64: string
+    }
+  | {
+      insecure: false
+      caFile: Buffer
+    }
+)
 
 class SpiceClient {
   private config: SpiceClientConfig
-  client: v1.ZedClientInterface
+  readonly client: v1.ZedClientInterface
 
   constructor(config: SpiceClientConfig) {
     this.config = config
@@ -42,14 +46,18 @@ class SpiceClient {
   private createClient(): v1.ZedClientInterface {
     const certificate = this.getCertificate()
     return certificate
-      ? v1.NewClientWithCustomCert(this.config.token, this.config.endpoint, certificate)
+      ? v1.NewClientWithCustomCert(
+          this.config.token,
+          this.config.endpoint,
+          certificate,
+        )
       : v1.NewClient(
           this.config.token,
           this.config.endpoint,
           v1.ClientSecurity.INSECURE_PLAINTEXT_CREDENTIALS,
         )
   }
-  
+
   private getCertificate(): Buffer | undefined {
     if (!this.config.insecure) {
       if ('caStringBase64' in this.config) {
@@ -62,7 +70,7 @@ class SpiceClient {
         return readFileSync(this.config.caFile)
       }
     }
-    
+
     logger.info('Initializing without certificate')
     return undefined
   }
