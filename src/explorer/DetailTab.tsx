@@ -1,5 +1,5 @@
 import { Card, Input, Select } from 'antd'
-import { ChangeEvent, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Definition } from '@/schema'
 import { useExplorerStore, useZedStore } from '@/zustand'
@@ -8,17 +8,32 @@ const { Search } = Input
 
 type DefTabProps = {
   id: string
-  setLabel: (id: string, label: string) => void
-  activeDefinition?: Definition
+  defaultDefinition?: string
 }
 
-const DetailTab = ({ id, setLabel }: DefTabProps) => {
+const DetailTab = ({ id, defaultDefinition }: DefTabProps) => {
   const schema = useZedStore((state) => state.schema)
-  const [definition, setDefinition] = useExplorerStore((state) => [
-    state.definition,
-    state.setDefinition,
-  ])
+  const updateLabel = useExplorerStore((state) => state.updateLabel)
+  const [definition, setDefinition] = useState<Definition | undefined>(
+    schema?.definitions.find((d) => d.name === defaultDefinition),
+  )
+  const [searchId, setSearchId] = useState<string>()
   const [searchDisabled, setSearchDisabled] = useState(true)
+
+  useEffect(() => {
+    const label = `${definition?.name || 'Tab'}${
+      searchId ? `:${searchId}` : ''
+    }`
+    updateLabel(id, label)
+  }, [updateLabel, id, definition, searchId])
+
+  useEffect(() => {
+    setSearchDisabled(!definition)
+  }, [setSearchDisabled, definition])
+
+  const onDefinitionSelect = (name: string) => {
+    setDefinition(schema?.definitions.find((d) => d.name === name))
+  }
 
   const defs = schema?.definitions.map((d) => {
     return {
@@ -26,21 +41,6 @@ const DetailTab = ({ id, setLabel }: DefTabProps) => {
       value: d.name,
     }
   })
-
-  const onDefinitionSelect = (name: string) => {
-    setDefinition(schema?.definitions.find((d) => d.name === name))
-
-    setLabel(id, name)
-    setSearchDisabled(false)
-  }
-
-  const onSearchId = ({ target }: ChangeEvent<HTMLInputElement>) => {
-    const entityId = target.value
-    if (definition) {
-      setLabel(id, `${definition.name}:${entityId}`)
-    }
-    console.log('Searching for Entity...')
-  }
 
   return (
     <>
@@ -56,7 +56,7 @@ const DetailTab = ({ id, setLabel }: DefTabProps) => {
         style={{ width: '25%' }}
         placeholder="Entity Id"
         disabled={searchDisabled}
-        onChange={onSearchId}
+        onSearch={(id) => setSearchId(id)}
       />
       <Card title="Relations"></Card>
     </>
