@@ -8,9 +8,38 @@ export interface Relation {
   resources: Resource[]
 }
 
+export interface ExpressionPart {
+  type: string
+}
+
+export interface RelationExpressionPart {
+  type: 'relation'
+  name: string
+  nestedExpressionPart?: ExpressionPart
+}
+
+export interface PermissionExpressionPart {
+  type: 'permission'
+  name: string
+}
+
+export interface OperationExpressionPart {
+  type: 'operation'
+  operator: '&' | '+' | '-'
+  operands: (PermissionExpressionPart | RelationExpressionPart)[]
+
+}
+
+export interface Permission {
+  name: string
+  expression: string
+  expressionParts?: ExpressionPart[]
+}
+
 export interface Definition {
   name: string
   relations: Relation[]
+  permissions: Permission[]
 }
 
 export interface Schema {
@@ -23,19 +52,20 @@ export type RegExpGroups<T extends string> =
     })
   | null;
 
-const definitionNameRegex = '[a-zA-Z_0-9]+'
-const relationNameRegex = '[a-zA-Z_0-9]+'
-const relationTypeNameRegex = '[a-zA-Z_0-9]+'
-const relationTypeRelationRegex = '[a-zA-Z_0-9]+'
-const relationTypeRegex = `${relationTypeNameRegex}(#${relationTypeRelationRegex})?`
+const identifierRegex = '[a-zA-Z_0-9]+'
+const permissionOperatorsRegex = '[+&-]'
+const permissionNestedOpRegex = `->${identifierRegex}`
+const relationTypeRegex = `${identifierRegex}(#${identifierRegex})?`
 
-const definitionRegex = new RegExp(`definition\\s*(?<name>${definitionNameRegex})\\s*{s*((?<inline>.*)})?`)
-const regex = new RegExp(`(?<relation>(relation\\s(?<name>${relationNameRegex}):\\s+(?<type>(${relationTypeRegex}(\\s*[|]\\s*)?)+)\\s*?))+`, 'g')
-const typeRegex = new RegExp(`(((?<type>${relationTypeNameRegex})(#(?<relation>${relationTypeRelationRegex}))?))+`, 'g')
+const definitionRegex = new RegExp(`definition\\s*(?<name>${identifierRegex})\\s*{s*((?<inline>.*)})?`)
+const relationRegex = new RegExp(`(?<relation>(relation\\s(?<name>${identifierRegex}):\\s+(?<type>(${relationTypeRegex}(\\s*[|]\\s*)?)+)\\s*?))+`, 'g')
+const typeRegex = new RegExp(`(((?<type>${identifierRegex})(#(?<relation>${identifierRegex}))?))+`, 'g')
+const permissionRegex = new RegExp(`permission\\s+(?<name>${identifierRegex})\\s*=\\s*(?<expression>(((\\s*${permissionOperatorsRegex}\\s*)?${identifierRegex}(${permissionNestedOpRegex})?))+)`, 'g')
+const permissionExpressionRegex = new RegExp(`(?<type>([a-zA-Z_0-9]+(?<nested>->[a-zA-Z_0-9]+)?)(\\s*(?<operator>[+&-])\\s*)?)`, 'g')
 
 function parseRelations(relation: string): Relation[] {
   const relations: Relation[] = []
-  const relationMatches = [...relation.matchAll(regex)]
+  const relationMatches: RegExpGroups<'name' | 'type'>[] = [...relation.matchAll(relationRegex)]
   for (const relation of relationMatches) {
     if (!relation?.groups) {
       continue
@@ -68,6 +98,37 @@ function parseRelations(relation: string): Relation[] {
   return relations
 }
 
+function parsePermissions(permission: string): Permission[] {
+  const permissions: Permission[] = []
+  const permissionMatches: RegExpGroups<'name' | 'expression'>[] = [...permission.matchAll(permissionRegex)]
+  for (const permission of permissionMatches) {
+    if (!permission?.groups) {
+      continue
+    }
+
+    const { groups: { name, expression }} = permission
+    const expressionMatches: RegExpGroups<'type' | 'nested' | 'operator'>[] = [...expression.matchAll(permissionExpressionRegex)]
+    if (!expressionMatches.length) {
+      throw Error(`Invalid expression found (permission=${name}): ${expression}`)
+    }
+
+    for (const expressionMatch of expressionMatches) {
+      if (!expressionMatch?.groups) {
+        continue
+      }
+
+      
+    }
+
+    permissions.push({
+      name: permission.groups.name,
+      expression: permission.groups.expression,
+    })
+  }
+  
+  return permissions
+}
+
 
 function parseSchema(schemaString: string): Schema {
   const schema: Schema = { definitions: [] }
@@ -87,11 +148,14 @@ function parseSchema(schemaString: string): Schema {
     }
 
     const { groups: { inline: body, name }} = typeMatch
-    const definition: Definition = { name, relations: [] }
+    const definition: Definition = { name, relations: [], permissions: [] }
     
     if (body) {
       parseRelations(body).forEach((relation) => {
         definition.relations.push(relation)
+      })
+      parsePermissions(body).forEach((permission) => {
+        definition.permissions.push(permission)
       })
     } else {
       if (!line.endsWith('}')) {
@@ -99,6 +163,9 @@ function parseSchema(schemaString: string): Schema {
           const propertyline = lines[++i].trim()
           parseRelations(propertyline).forEach((relation) => {
             definition.relations.push(relation)
+          })
+          parsePermissions(propertyline).forEach((permission) => {
+            definition.permissions.push(permission)
           })
         }
       }
