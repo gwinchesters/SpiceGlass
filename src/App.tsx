@@ -1,8 +1,8 @@
 import { Layout } from 'antd'
 import { useEffect, useState } from 'react'
 
-import DefinitionContent from '@/explorer/DefinitionContent'
 import SchemaSearch from '@/explorer/SchemaSearch'
+import DefinitionContent from '@/explorer/TabManager'
 import FixedSidebar from '@/layout/FixedSidebar'
 import SpiceClient from '@/services/spice'
 import { useZedStore } from '@/zustand'
