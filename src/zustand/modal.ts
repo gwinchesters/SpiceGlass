@@ -4,14 +4,14 @@ import { Definition } from '@/schema'
 
 import { createSelectors } from './selectors'
 
-interface ModalState<T> {
+export interface ModalState<T> {
   open: boolean
   onSuccess?: () => void
   onCancel?: () => void
   config?: T
 }
 
-type AddRelationModalStateConfig = {
+export type AddRelationModalStateConfig = {
   resource?: Definition
   resourceId?: string
   subjectId?: string

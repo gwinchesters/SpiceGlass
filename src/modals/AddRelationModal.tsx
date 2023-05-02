@@ -1,10 +1,24 @@
 import { RelationshipUpdate_Operation } from '@authzed/authzed-node/dist/src/v1'
-import { Col, Form, Input, message, Modal, Row, Select, Typography } from 'antd'
+import {
+  Col,
+  Form,
+  FormInstance,
+  Input,
+  message,
+  Modal,
+  Row,
+  Select,
+  Space,
+  Switch,
+  Typography,
+} from 'antd'
 import { startCase } from 'lodash'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import { Schema } from '@/schema'
 import { throwError } from '@/utils/error'
 import { useModalStateStore, useZedStore } from '@/zustand'
+import { AddRelationModalStateConfig, ModalState } from '@/zustand/modal'
 
 const { Text } = Typography
 
@@ -14,6 +28,78 @@ type AddRelationForm = {
   relation: string
   resourceType: string
   resourceId: string
+}
+
+const useFormHandling = (
+  form: FormInstance<AddRelationForm>,
+  schema: Schema,
+  modalState: ModalState<AddRelationModalStateConfig>,
+) => {
+  const { config = {} } = modalState
+  const [resourceType, relation] = [
+    Form.useWatch('resourceType', form),
+    Form.useWatch('relation', form),
+  ]
+  const resourceTypes = useMemo(() => {
+    return schema.definitions.map(({ name }) => ({
+      value: name,
+      label: startCase(name),
+    }))
+  }, [form, schema])
+  const relationships = useMemo(() => {
+    if (form && resourceType) {
+      const currentValue = form.getFieldValue('relation')
+      const newRelations =
+        schema.getDefinitionByName(resourceType)?.relations.map(({ name }) => ({
+          value: name,
+          label: startCase(name),
+        })) ?? []
+
+      if (newRelations.find((r) => r.value === currentValue) === undefined) {
+        form.resetFields(['relation'])
+      }
+
+      return newRelations
+    }
+
+    return []
+  }, [form, resourceType])
+  const subjectTypes = useMemo(() => {
+    if (form && resourceType && relation) {
+      const currentValue = form.getFieldValue('subjectType')
+      const newSubjectTypes =
+        schema
+          .getDefinitionByName(resourceType)
+          ?.relations.filter((r) => r.name === relation)
+          .flatMap(({ resources }) => resources)
+          .map(({ name }) => ({ value: name, label: startCase(name) })) ?? []
+
+      if (newSubjectTypes.find((s) => s.value === currentValue) === undefined) {
+        form.resetFields(['subjectType'])
+      }
+
+      return newSubjectTypes
+    }
+    return []
+  }, [form, resourceType, relation])
+
+  useEffect(() => {
+    if (modalState.open) {
+      form.setFieldsValue({
+        relation: config.relation,
+        resourceType: config.resource?.name,
+        subjectType: config.subjectType?.name,
+        subjectId: config.subjectId,
+        resourceId: config.resourceId,
+      })
+    }
+  }, [form, modalState])
+
+  return {
+    resourceTypes,
+    relationships,
+    subjectTypes,
+  }
 }
 
 const AddRelationModal = () => {
@@ -29,52 +115,12 @@ const AddRelationModal = () => {
     store.addRelation,
     store.triggerAddRelationComplete,
   ])
-  const [resourceType, relation] = [
-    Form.useWatch('resourceType', form),
-    Form.useWatch('relation', form),
-  ]
-  const resourceTypes = useMemo(() => {
-    return schema.definitions.map(({ name }) => ({
-      value: name,
-      label: startCase(name),
-    }))
-  }, [schema])
-  const relationships = useMemo(() => {
-    const currentValue = form.getFieldValue('relation')
-    const newRelations =
-      schema.getDefinitionByName(resourceType)?.relations.map(({ name }) => ({
-        value: name,
-        label: startCase(name),
-      })) ?? []
-    if (newRelations.find((r) => r.value === currentValue) === undefined) {
-      form.resetFields(['relation'])
-    }
-  }, [resourceType])
-  const subjectTypes = useMemo(() => {
-    const currentValue = form.getFieldValue('subjectType')
-    const newSubjectTypes =
-      schema
-        .getDefinitionByName(resourceType)
-        ?.relations.filter((r) => r.name === relation)
-        .flatMap(({ resources }) => resources)
-        .map(({ name }) => ({ value: name, label: startCase(name) })) ?? []
-
-    if (newSubjectTypes.find((s) => s.value === currentValue) === undefined) {
-      form.resetFields(['subjectType'])
-    }
-  }, [resourceType, relation])
-
-  useEffect(() => {
-    if (modalState.open) {
-      form.setFieldsValue({
-        relation: config.relation,
-        resourceType: config.resource?.name,
-        subjectType: config.subjectType?.name,
-        subjectId: config.subjectId,
-        resourceId: config.resourceId,
-      })
-    }
-  }, [form, modalState])
+  const [touchOperation, setTouchOperation] = useState<boolean>(true)
+  const { resourceTypes, relationships, subjectTypes } = useFormHandling(
+    form,
+    schema,
+    modalState,
+  )
 
   const onSubmit = useCallback(
     async (cancelled = false) => {
@@ -95,7 +141,9 @@ const AddRelationModal = () => {
           await spiceClient.runner.writeRelationships({
             updates: [
               {
-                operation: RelationshipUpdate_Operation.TOUCH,
+                operation: touchOperation
+                  ? RelationshipUpdate_Operation.TOUCH
+                  : RelationshipUpdate_Operation.CREATE,
                 relationship: {
                   resource: {
                     objectType: values.resourceType,
@@ -138,10 +186,15 @@ const AddRelationModal = () => {
       setSubmitError(undefined)
       triggerComplete(cancelled)
     },
-    [form, triggerComplete, spiceClient, setSubmitError, triggerRefresh],
+    [
+      form,
+      triggerComplete,
+      spiceClient,
+      setSubmitError,
+      triggerRefresh,
+      touchOperation,
+    ],
   )
-
-  const { config = {} } = modalState
 
   return (
     <Modal
@@ -166,6 +219,7 @@ const AddRelationModal = () => {
         </div>
       )}
       <Form
+        onKeyUp={({ key }) => key === 'Enter' && onSubmit()}
         style={{ padding: '1em' }}
         name="add"
         form={form}
@@ -240,6 +294,19 @@ const AddRelationModal = () => {
             >
               <Input />
             </Form.Item>
+          </Col>
+        </Row>
+        <Row justify="end">
+          <Col>
+            <Space>
+              <Text>Operation Mode:</Text>
+              <Switch
+                checkedChildren="Touch"
+                unCheckedChildren="Create"
+                checked={touchOperation}
+                onChange={(checked) => setTouchOperation(checked)}
+              />
+            </Space>
           </Col>
         </Row>
       </Form>
