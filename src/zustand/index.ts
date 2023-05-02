@@ -1,4 +1,5 @@
 export type { ExplorerState } from './explorer'
 export { useExplorerStore } from './explorer'
+export { useModalStateStore } from './modal'
 export type { ZedState } from './zed'
 export { useZedStore } from './zed'
