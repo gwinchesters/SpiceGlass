@@ -1,6 +1,7 @@
 import { Tabs } from 'antd'
 import { KeyboardEvent, MouseEvent } from 'react'
 
+import { explorerStyle } from '@/utils/styles'
 import { useExplorerStore } from '@/zustand'
 
 import DetailTab from './DetailTab'
@@ -31,24 +32,37 @@ const DefinitionContent = () => {
   }
 
   return (
-    <Tabs
-      type="editable-card"
-      size="small"
-      activeKey={activeTab}
-      onChange={onChange}
-      onEdit={onEdit}
-      items={tabs.map((t) => ({
-        label: t.label,
-        key: t.id,
-        children: (
-          <DetailTab
-            id={t.id}
-            entityId={t.entityId}
-            defaultDefinition={t.defaultDefinition}
-          />
-        ),
-      }))}
-    />
+    <section
+      style={{
+        height: '100%',
+        backgroundColor: explorerStyle.backgroundColor,
+      }}
+    >
+      <Tabs
+        type="editable-card"
+        size="small"
+        activeKey={activeTab}
+        onChange={onChange}
+        onEdit={onEdit}
+        items={tabs.map((t) => ({
+          label: t.label,
+          key: t.id,
+          children: (
+            <DetailTab
+              id={t.id}
+              entityId={t.entityId}
+              defaultDefinition={t.defaultDefinition}
+            />
+          ),
+        }))}
+      />
+      <div
+        style={{
+          height: '100%',
+          backgroundColor: explorerStyle.backgroundColor,
+        }}
+      ></div>
+    </section>
   )
 }
 
