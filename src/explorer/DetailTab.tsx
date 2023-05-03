@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 
 import type { Definition } from '@/schema'
 import { throwError } from '@/utils/error'
+import { explorerStyle } from '@/utils/styles'
 import { useExplorerStore, useZedStore } from '@/zustand'
 
 import RelationGrid from './RelationGrid'
@@ -53,7 +54,15 @@ const DetailTab = ({ id, defaultDefinition, entityId }: DefTabProps) => {
   })
 
   return (
-    <>
+    <section
+      style={{
+        paddingTop: '.5em',
+        height: '100%',
+        backgroundColor: explorerStyle.contentBackgroundColor,
+        margin: '.5em',
+        borderRadius: '.5em',
+      }}
+    >
       <Select
         showSearch
         filterOption={(input, option) =>
@@ -77,7 +86,7 @@ const DetailTab = ({ id, defaultDefinition, entityId }: DefTabProps) => {
       {definition && (
         <RelationGrid entityId={searchId} definition={definition} />
       )}
-    </>
+    </section>
   )
 }
 

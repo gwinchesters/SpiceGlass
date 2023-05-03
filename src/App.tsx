@@ -55,7 +55,7 @@ function App() {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <FixedSidebar />
-      <Layout style={{ marginLeft: 50 }}>
+      <Layout style={{ marginLeft: 50, overflow: 'hidden' }}>
         <Sider style={{ backgroundColor: '#00474f' }}>
           <SchemaSearch />
         </Sider>

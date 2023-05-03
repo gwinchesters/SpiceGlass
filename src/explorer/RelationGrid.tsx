@@ -5,7 +5,7 @@ import { FC } from 'react'
 
 import { useDefinitionRelations } from '@/hooks/useGetDefinitionRelations'
 import { Definition } from '@/schema'
-import { linkStyle } from '@/utils/styles'
+import { explorerStyle, linkStyle } from '@/utils/styles'
 import { useExplorerStore, useModalStateStore } from '@/zustand'
 
 import RelationshipList from './RelationshipList'
@@ -20,8 +20,14 @@ const RelationGrid: FC<RelationGridProd> = ({ definition, entityId }) => {
   const relations = useDefinitionRelations({ definition })
   const triggerAddRelation = useModalStateStore.use.triggerAddRelation()
   return (
-    <div style={{ paddingLeft: '1em', paddingRight: '1em' }}>
-      <h2>Relations</h2>
+    <div
+      style={{
+        paddingTop: '.5em',
+        paddingLeft: '1em',
+        paddingRight: '1em',
+      }}
+    >
+      <h3 style={{ color: '#002329' }}>RELATIONS</h3>
       <List
         grid={{ gutter: 16, xs: 1, sm: 1, md: 2, lg: 2, xl: 2, xxl: 3 }}
         dataSource={relations}
@@ -29,13 +35,15 @@ const RelationGrid: FC<RelationGridProd> = ({ definition, entityId }) => {
           <List.Item>
             <Card
               size="small"
-              headStyle={{ backgroundColor: '#c9c9c9' }}
+              headStyle={{ backgroundColor: '#00474f' }}
               title={
                 <Row>
                   <Col style={{ textAlign: 'left' }} span={12}>
                     <Space>
-                      <LinkOutlined style={{ color: '#00474f' }} />
-                      <span>{upperCase(relation.name)}</span>
+                      <LinkOutlined style={{ color: explorerStyle.color }} />
+                      <span style={{ color: explorerStyle.color }}>
+                        {upperCase(relation.name)}
+                      </span>
                       <span
                         style={{
                           ...linkStyle,
@@ -84,6 +92,7 @@ const RelationGrid: FC<RelationGridProd> = ({ definition, entityId }) => {
                           })
                         }
                         icon={<AppstoreAddOutlined />}
+                        style={{ ...linkStyle }}
                       />
                     </Tooltip>
                   </Col>
