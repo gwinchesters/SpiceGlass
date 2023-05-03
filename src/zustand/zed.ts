@@ -15,9 +15,11 @@ export interface ZedState {
   spiceClient: SpiceClient | undefined
   schema: Schema | undefined
   schemaError: string | undefined
+  lastUpdate: number
   setSchema: (schema: Schema) => void
   setSchemaError: (err: string | undefined) => void
   setSpiceClient: (spiceClient: SpiceClient) => void
+  triggerRefresh: () => void
 }
 
 export const useZedStoreBase = create<ZedState>()((set) => ({
@@ -28,9 +30,11 @@ export const useZedStoreBase = create<ZedState>()((set) => ({
   spiceClient: undefined,
   schema: undefined,
   schemaError: undefined,
+  lastUpdate: Date.now(),
   setSchema: (schema) => set(() => ({ schema })),
   setSchemaError: (schemaError) => set(() => ({ schemaError })),
   setSpiceClient: (spiceClient) => set(() => ({ spiceClient })),
+  triggerRefresh: () => set(() => ({ lastUpdate: Date.now() })),
 }))
 
 export const useZedStore = createSelectors(useZedStoreBase)

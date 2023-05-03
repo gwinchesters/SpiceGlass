@@ -11,23 +11,28 @@ export const useGetRelationEntities = ({
 }: {
   entity: Entity
   relation: Relation
-}) => {
+}): [Relationship[] | undefined, boolean] => {
   const [spiceClient] = useZedStore((state) => [
     state.spiceClient ?? throwError('Unknown client'),
   ])
   const [relationships, setRelationships] = useState<Relationship[]>()
+  const [loading, setLoading] = useState<boolean>(false)
 
   useEffect(() => {
     const fetch = async () => {
+      setLoading(true)
       const relationships = await relation.lookupRelationsFromEntity(
         entity,
         spiceClient,
       )
       setRelationships(relationships)
+      setLoading(false)
     }
 
-    void fetch()
-  }, [entity, relation])
+    if (entity?.id?.trim() !== '') {
+      void fetch()
+    }
+  }, [entity, relation, setLoading])
 
-  return relationships
+  return [relationships, loading]
 }

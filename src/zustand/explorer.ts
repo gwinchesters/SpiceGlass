@@ -1,13 +1,13 @@
 import { create } from 'zustand'
 
+import { createSelectors } from './selectors'
+
 export interface Tab {
   id: string
   label: string | undefined
   defaultDefinition?: string
   entityId?: string
 }
-
-import { createSelectors } from './selectors'
 
 export interface ExplorerState {
   tabs: Tab[]

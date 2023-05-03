@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+
 import { Definition, Relation } from '@/schema'
 import { throwError } from '@/utils/error'
 import { useZedStore } from '@/zustand'
@@ -7,9 +9,12 @@ export const useDefinitionRelations = ({
 }: {
   definition: Definition
 }): Relation[] => {
-  const schema = useZedStore(
-    (state) => state.schema ?? throwError('Unknown schema'),
-  )
+  const [schema, lastUpdate] = useZedStore((state) => [
+    state.schema ?? throwError('Unknown schema'),
+    state.lastUpdate,
+  ])
 
-  return schema.getRelationsForDefinition(definition.name)
+  return useMemo(() => {
+    return schema.getRelationsForDefinition(definition.name)
+  }, [schema, lastUpdate])
 }
