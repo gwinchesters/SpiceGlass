@@ -1,5 +1,5 @@
 import { Tabs } from 'antd'
-import { KeyboardEvent, MouseEvent } from 'react'
+import { KeyboardEvent, MouseEvent, useEffect } from 'react'
 
 import { explorerStyle } from '@/utils/styles'
 import { useExplorerStore } from '@/zustand'
