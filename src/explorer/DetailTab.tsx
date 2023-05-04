@@ -1,10 +1,12 @@
-import { Divider, Input, Select } from 'antd'
+import { AppstoreAddOutlined } from '@ant-design/icons'
+import { Button, Col, Divider, Input, Row, Select, Space, Tooltip } from 'antd'
+import { startCase } from 'lodash'
 import { useEffect, useState } from 'react'
 
 import type { Definition } from '@/schema'
 import { throwError } from '@/utils/error'
-import { explorerStyle } from '@/utils/styles'
-import { useExplorerStore, useZedStore } from '@/zustand'
+import { explorerStyle, linkStyle } from '@/utils/styles'
+import { useExplorerStore, useModalStateStore, useZedStore } from '@/zustand'
 
 import RelationGrid from './RelationGrid'
 
@@ -17,9 +19,11 @@ type DefTabProps = {
 }
 
 const DetailTab = ({ id, defaultDefinition, entityId }: DefTabProps) => {
-  const schema = useZedStore(
-    (state) => state.schema ?? throwError('Schema not defined'),
-  )
+  const [schema, triggerRefresh] = useZedStore((state) => [
+    state.schema ?? throwError('Schema not defined'),
+    state.triggerRefresh,
+  ])
+  const triggerCheckPermission = useModalStateStore.use.triggerCheckPermission()
   const updateLabel = useExplorerStore((state) => state.updateLabel)
   const [definition, setDefinition] = useState<Definition | undefined>(
     defaultDefinition
@@ -32,8 +36,8 @@ const DetailTab = ({ id, defaultDefinition, entityId }: DefTabProps) => {
   const [searchDisabled, setSearchDisabled] = useState(true)
 
   useEffect(() => {
-    const label = `${definition?.name || 'Tab'}${
-      searchId ? `:${searchId}` : ''
+    const label = `${startCase(definition?.name) || 'Tab'}${
+      searchId ? `: ${searchId}` : ''
     }`
     updateLabel(id, label)
   }, [updateLabel, id, definition, searchId])
@@ -48,7 +52,7 @@ const DetailTab = ({ id, defaultDefinition, entityId }: DefTabProps) => {
 
   const defs = schema?.definitions.map((d) => {
     return {
-      label: d.name,
+      label: startCase(d.name),
       value: d.name,
     }
   })
@@ -63,25 +67,59 @@ const DetailTab = ({ id, defaultDefinition, entityId }: DefTabProps) => {
         borderRadius: '.5em',
       }}
     >
-      <Select
-        showSearch
-        filterOption={(input, option) =>
-          (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-        }
-        placeholder="Definition"
-        defaultValue={defaultDefinition}
-        onChange={onDefinitionSelect}
-        style={{ width: '25%' }}
-        options={defs}
-        bordered={false}
-      />
-      <Search
-        style={{ width: '25%' }}
-        placeholder="Entity Id"
-        disabled={searchDisabled}
-        defaultValue={entityId}
-        onSearch={(id) => setSearchId(id)}
-      />
+      <Row style={{ paddingLeft: '1em', paddingRight: '1em' }}>
+        <Col span={8}>
+          <Select
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            placeholder="Definition"
+            defaultValue={defaultDefinition}
+            onChange={onDefinitionSelect}
+            style={{
+              width: '100%',
+              backgroundColor: 'white',
+              borderRadius: '5px',
+            }}
+            options={defs}
+            bordered={false}
+          />
+        </Col>
+        <Col span={8} offset={2}>
+          <Search
+            style={{ width: '100%' }}
+            placeholder="Entity Id"
+            disabled={searchDisabled}
+            defaultValue={entityId}
+            onSearch={(id) => setSearchId(id)}
+          />
+        </Col>
+        <Col flex="auto" style={{ textAlign: 'right' }}>
+          <Space>
+            <Tooltip title="Add relation">
+              <Button
+                type="primary"
+                onClick={() =>
+                  triggerCheckPermission({
+                    config: {
+                      subjectId: searchId,
+                      subjectType: definition,
+                    },
+                  })
+                }
+              >
+                Check
+              </Button>
+            </Tooltip>
+            <Tooltip title="Add relation">
+              <Button type="default" onClick={() => triggerRefresh()}>
+                Refresh
+              </Button>
+            </Tooltip>
+          </Space>
+        </Col>
+      </Row>
       <Divider style={{ margin: '12px' }} />
       {definition && (
         <RelationGrid entityId={searchId} definition={definition} />

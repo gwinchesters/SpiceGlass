@@ -134,6 +134,7 @@ const AddRelationModal = () => {
         try {
           values = await form.validateFields()
         } catch (e) {
+          messageApi.destroy()
           return
         }
 
@@ -263,7 +264,7 @@ const AddRelationModal = () => {
             >
               <Select
                 showSearch
-                placeholder="Select a subject type"
+                placeholder="Select a relation"
                 options={relationships}
               />
             </Form.Item>

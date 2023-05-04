@@ -41,9 +41,23 @@ export const useExplorerStoreBase = create<ExplorerState>()((set) => ({
       }
     }),
   removeTab: (id) =>
-    set((state) => ({
-      tabs: state.tabs.filter((t) => t.id !== id),
-    })),
+    set((state) => {
+      const index = state.tabs.findIndex((t) => t.id === id)
+      const newTabs = state.tabs.filter((t) => t.id !== id)
+      if (id === state.activeTab) {
+        const newIndex = index > 0 ? index - 1 : 0
+        const newActive =
+          newTabs.length > newIndex ? newTabs[newIndex].id : undefined
+        return {
+          tabs: newTabs,
+          activeTab: newActive,
+        }
+      }
+
+      return {
+        tabs: newTabs,
+      }
+    }),
   updateLabel: (id, label) =>
     set((state) => ({
       tabs: state.tabs.map((t) => {

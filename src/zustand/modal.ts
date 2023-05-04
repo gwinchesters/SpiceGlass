@@ -19,8 +19,17 @@ export type AddRelationModalStateConfig = {
   relation?: string
 }
 
+export type CheckPermissionModalStateConfig = {
+  resource?: Definition
+  resourceId?: string
+  subjectId?: string
+  subjectType?: Definition
+  permission?: string
+}
+
 type ModalStateStoreConfig = {
   addRelation: ModalState<AddRelationModalStateConfig>
+  checkPermission: ModalState<CheckPermissionModalStateConfig>
 }
 
 type ModalSetter<T extends keyof ModalStateStoreConfig> = (
@@ -56,6 +65,8 @@ function triggerComplete<T extends keyof ModalStateStoreConfig>(
 export type ModalStateStore = ModalStateStoreConfig & {
   triggerAddRelation: ModalSetter<'addRelation'>
   triggerAddRelationComplete: (cancelled: boolean) => void
+  triggerCheckPermission: ModalSetter<'checkPermission'>
+  triggerCheckPermissionComplete: (cancelled: boolean) => void
 }
 
 export const useModalStateStoreBase = create<ModalStateStore>()((set) => ({
@@ -68,6 +79,17 @@ export const useModalStateStoreBase = create<ModalStateStore>()((set) => ({
   triggerAddRelationComplete: (cancelled) => {
     set((state) => ({
       addRelation: triggerComplete('addRelation', state, cancelled),
+    }))
+  },
+  checkPermission: { ...initialModalState },
+  triggerCheckPermission: (value) => {
+    set(() => ({
+      checkPermission: createTriggerState<'checkPermission'>(value),
+    }))
+  },
+  triggerCheckPermissionComplete: (cancelled) => {
+    set((state) => ({
+      checkPermission: triggerComplete('checkPermission', state, cancelled),
     }))
   },
 }))

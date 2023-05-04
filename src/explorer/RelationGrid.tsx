@@ -77,12 +77,6 @@ const RelationGrid: FC<RelationGridProd> = ({ definition, entityId }) => {
                         size="small"
                         onClick={() =>
                           triggerAddRelation({
-                            onSuccess() {
-                              console.log('yay')
-                            },
-                            onCancel() {
-                              console.log('cancel')
-                            },
                             config: {
                               subjectId: entityId,
                               subjectType: definition,
